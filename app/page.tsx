@@ -1,65 +1,64 @@
-import Image from "next/image";
+// app/page.tsx
+import type { Metadata } from "next";
+import Hero from "./_components/Hero";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "업소용 순살닭꼬치 도매 납품",
+  description:
+    "가게 운영 사장님 전용 업소용 순살닭꼬치 도매 납품. 110g 균일 · 순살 · 냉동 · 박스단위 공급.",
+};
+
+const KAKAO_CHAT_URL = "https://pf.kakao.com/___YOUR_CHANNEL/chat"; // TODO: 실제 링크로 교체
+const CALL_PHONE = "010-0000-0000"; // TODO: 실제 번호로 교체
+const HERO_IMAGE_SRC = "/images/hero-a.png"; // public/images/hero-a.png
+
+export default function LandingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-white text-gray-900">
+      <Hero kakaoChatUrl={KAKAO_CHAT_URL} callPhone={CALL_PHONE} heroImageSrc={HERO_IMAGE_SRC} />
+
+      {/* 아래는 다음 단계에서 채울 영역(레이아웃 자리만) */}
+      <section className="mx-auto w-full max-w-6xl px-4 pb-24 md:px-8">
+        <div className="grid gap-8">
+          {/* TODO: 2) 이런 사장님께 맞습니다 */}
+          <div className="rounded-2xl border border-gray-200 p-5 md:p-7">
+            <h2 className="text-lg font-bold md:text-xl">이런 사장님께 맞습니다</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              분식 · 포장마차 · 호프/주점 · 푸드트럭 · 야시장 등 업소 운영 사장님 대상
+            </p>
+          </div>
+
+          {/* TODO: 6) 문자 상담 요청 폼 섹션(스크롤 목적지) */}
+          <div id="sms-lead" className="rounded-2xl border border-gray-200 p-5 md:p-7">
+            <h2 className="text-lg font-bold md:text-xl">문자 상담 요청</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              (다음 단계에서 폼 UI + CoolSMS 연동을 붙입니다)
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+      </section>
+
+      {/* 모바일 하단 고정 CTA (전화/카톡) */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur md:hidden">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 px-3 py-3">
           <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`tel:${CALL_PHONE.replaceAll("-", "")}`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:opacity-80"
+            aria-label="하단 고정: 전화"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            <span aria-hidden>📞</span> 전화
           </a>
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            href={KAKAO_CHAT_URL}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 active:bg-gray-100"
+            aria-label="하단 고정: 카톡"
           >
-            Documentation
+            <span aria-hidden>💬</span> 카톡
           </a>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
