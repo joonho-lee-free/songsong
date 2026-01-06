@@ -1,4 +1,3 @@
-// app/_components/Hero.tsx
 "use client";
 
 type HeroProps = {
@@ -63,9 +62,9 @@ export default function Hero({ kakaoChatUrl, callPhone, heroImageSrc }: HeroProp
 
             <button
               type="button"
-              onClick={() => scrollToId("sms-lead")}
+              onClick={() => scrollToId("inquiry")}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 active:bg-gray-100"
-              aria-label="문자로 도매 상담 요청하기(폼으로 이동)"
+              aria-label="문자로 도매 상담 요청하기(문의 폼으로 이동)"
             >
               <span aria-hidden>✉️</span>
               문자요청
