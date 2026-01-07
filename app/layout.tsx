@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script"; // ✅ 추가
+import MobileCTA from "./_components/MobileCTA";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,22 +26,31 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* ✅ GA4 gtag.js 로드 */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8R35CVBW02"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-8R35CVBW02', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
+      </head>
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
 
-        {/* 🔽 Mobile Fixed CTA */}
-        <div className="mobile-cta">
-          <a href="tel:051-714-3396" className="cta-btn call">
-            📞 전화
-          </a>
-
-          {/* ✅ 기존에 만들어둔 문자 폼(id="sms-lead")으로 이동 */}
-          <a href="/#sms-lead" className="cta-btn sms">
-            ✉️ 문자요청
-          </a>
-        </div>
+        {/* 🔽 Mobile Fixed CTA (기존 로직 유지) */}
+        <MobileCTA />
       </body>
     </html>
   );

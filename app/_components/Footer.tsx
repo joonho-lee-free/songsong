@@ -8,13 +8,13 @@ export default function Footer() {
             <div className="text-base font-extrabold text-gray-900">이가에프엔비</div>
             <div className="mt-3 space-y-1">
               <div>
-                <span className="font-semibold text-gray-900">상호명</span> : 이가F&B
+                <span className="font-semibold text-gray-900">상호명</span> : 이가에프엔비
               </div>
               <div>
                 <span className="font-semibold text-gray-900">대표</span> : 이준호
               </div>
               <div>
-                <span className="font-semibold text-gray-900">주소</span> : 부산광역시 남구 유엔평화로13번길 102
+                <span className="font-semibold text-gray-900">주소</span> : 부산광역시 강서구 낙동북로 31번길 19
               </div>
               <div>
                 <span className="font-semibold text-gray-900">사업자등록번호</span> : 408-30-91599
