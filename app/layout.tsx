@@ -28,6 +28,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+
+        {/* 🔽 Mobile Fixed CTA */}
+        <div className="mobile-cta">
+          <a href="tel:01012345678" className="cta-btn call">
+            📞 전화
+          </a>
+
+          {/* ✅ 기존에 만들어둔 문자 폼(id="sms-lead")으로 이동 */}
+          <a href="/#sms-lead" className="cta-btn sms">
+            ✉️ 문자요청
+          </a>
+        </div>
       </body>
     </html>
   );
