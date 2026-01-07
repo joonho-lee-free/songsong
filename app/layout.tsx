@@ -31,7 +31,7 @@ export default function RootLayout({
 
         {/* 🔽 Mobile Fixed CTA */}
         <div className="mobile-cta">
-          <a href="tel:01012345678" className="cta-btn call">
+          <a href="tel:051-714-3396" className="cta-btn call">
             📞 전화
           </a>
 
