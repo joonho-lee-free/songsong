@@ -1,3 +1,5 @@
+"use client";
+
 // 파일위치: app/_components/Hero.tsx
 // 파일명: Hero.tsx
 
@@ -7,6 +9,12 @@ type HeroProps = {
   heroImageSrc?: string; // 예: "/images/hero-a.png"
   leadAnchorId?: string; // 기본 "sms-lead"
 };
+
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 function digitsOnly(s: string) {
   return (s || "").replace(/\D/g, "");
@@ -19,6 +27,15 @@ export default function Hero({
   leadAnchorId = "sms-lead",
 }: HeroProps) {
   const tel = digitsOnly(callPhone);
+
+  const trackEvent = (eventName: string) => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", eventName, {
+        event_category: "lead",
+        event_label: "hero",
+      });
+    }
+  };
 
   return (
     <section className="mx-auto w-full max-w-6xl px-4 pt-10 pb-8 md:px-8 md:pt-16 md:pb-12">
@@ -44,8 +61,10 @@ export default function Hero({
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {/* 📞 전화 (중간 페이지 /call → GA 이벤트 보장) */}
             <a
-              href={tel ? `tel:${tel}` : undefined}
+              href="/call"
+              onClick={() => trackEvent("call_click")}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:opacity-80"
               aria-label="전화로 도매 단가 바로 받기"
             >
@@ -53,10 +72,12 @@ export default function Hero({
               전화로 단가 받기
             </a>
 
+            {/* 💬 카톡 */}
             <a
               href={kakaoChatUrl}
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackEvent("kakao_click")}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 active:bg-gray-100"
               aria-label="카톡으로 도매 조건 문의"
             >
@@ -64,8 +85,10 @@ export default function Hero({
               카톡 문의
             </a>
 
+            {/* ✉️ 문자 */}
             <a
               href={`#${leadAnchorId}`}
+              onClick={() => trackEvent("sms_click")}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 active:bg-gray-100"
               aria-label="문자요청 폼으로 이동"
             >
