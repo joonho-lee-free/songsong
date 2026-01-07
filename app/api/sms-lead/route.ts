@@ -9,6 +9,14 @@ function shortErr(err: any) {
   return encodeURIComponent(`${name}:${String(msg).slice(0, 80)}`);
 }
 
+/**
+ * ✅ POST 응답에서 redirect는 303을 써야 브라우저가 GET으로 따라감
+ * - NextResponse.redirect 기본은 307 (메소드 유지) → /sms/sent 가 POST로 호출되어 405 발생
+ */
+function redirect303(reqUrl: string, pathWithHash: string) {
+  return NextResponse.redirect(new URL(pathWithHash, reqUrl), { status: 303 });
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -18,9 +26,7 @@ export async function POST(req: Request) {
     const message = String(formData.get("message") || "").trim();
 
     if (!storeName || !phone) {
-      return NextResponse.redirect(
-        new URL("/?error=invalid_input#sms-lead", req.url)
-      );
+      return redirect303(req.url, "/?error=invalid_input#sms-lead");
     }
 
     const apiKey = process.env.SOLAPI_API_KEY?.trim();
@@ -35,19 +41,16 @@ export async function POST(req: Request) {
         SOLAPI_FROM: !!from,
         SOLAPI_TO: !!to,
       });
-      return NextResponse.redirect(
-        new URL("/?error=server_env#sms-lead", req.url)
-      );
+      return redirect303(req.url, "/?error=server_env#sms-lead");
     }
 
     const norm = (s: string) => s.replace(/[^0-9]/g, "");
     const fromN = norm(from);
     const toN = norm(to);
+
     if (fromN.length < 10 || toN.length < 10) {
       console.error("❌ Phone format invalid", { from, to });
-      return NextResponse.redirect(
-        new URL("/?error=bad_phone_env#sms-lead", req.url)
-      );
+      return redirect303(req.url, "/?error=bad_phone_env#sms-lead");
     }
 
     const sms = new (CoolSMS as any)(apiKey, apiSecret);
@@ -65,16 +68,14 @@ export async function POST(req: Request) {
 
     console.log("✅ SMS SENT result:", result);
 
-    // ✅ 성공 시: 전환 전용 페이지로 보내서 (클라이언트에서 fbq/gtag 실행)
-    return NextResponse.redirect(new URL("/sms/sent", req.url));
+    // ✅ 성공 시: /sms/sent 로 이동 (반드시 303)
+    return redirect303(req.url, "/sms/sent");
   } catch (err: any) {
     console.error("❌ SMS ERROR name:", err?.name);
     console.error("❌ SMS ERROR message:", err?.message);
     console.error("❌ SMS ERROR stack:", err?.stack);
     console.error("❌ SMS ERROR raw:", err);
 
-    return NextResponse.redirect(
-      new URL(`/?error=${shortErr(err)}#sms-lead`, req.url)
-    );
+    return redirect303(req.url, `/?error=${shortErr(err)}#sms-lead`);
   }
 }
