@@ -11,8 +11,8 @@ export const metadata: Metadata = {
     "가게 운영 사장님 전용 업소용 순살닭꼬치 도매 납품. 110g 균일 · 순살 · 냉동 · 박스단위 공급.",
 };
 
-const KAKAO_CHAT_URL = "https://pf.kakao.com/___YOUR_CHANNEL/chat"; // TODO 실제 채널로 교체
-const CALL_PHONE = "010-0000-0000"; // TODO 실제 번호로 교체
+const KAKAO_CHAT_URL = "http://pf.kakao.com/_TWfbG"; // ✅ 카카오톡 채널관리 URL로 교체
+const CALL_PHONE = "051-714-3396"; // ✅ 실제 번호로 교체
 const HERO_IMAGE_SRC = "/images/hero-a.png";
 
 type SearchParams = {
@@ -43,7 +43,7 @@ export default async function Page({
         heroImageSrc={HERO_IMAGE_SRC}
         leadAnchorId="sms-lead"
       />
-            {/* 본문 */}
+      {/* 본문 */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-40 md:px-8">
         <div className="grid gap-10">
           {/* 이런 사장님께 맞습니다 */}
@@ -114,10 +114,8 @@ export default async function Page({
               ※ 첫 거래 시 담당자가 직접 안내드립니다.
             </p>
           </div>
-
         </div>
       </section>
-
 
       {/* 문자 상담 요청 폼 */}
       <section
