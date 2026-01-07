@@ -1,111 +1,83 @@
-// 파일위치: app/api/sms-lead/route.ts
-// 파일명: route.ts
-
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { SolapiMessageService } from "solapi";
+import CoolSMS from "coolsms-node-sdk";
 
-// 간단 레이트리밋(서버리스에서 완벽하진 않지만 1차 방어용)
-const hitMap = new Map<string, { count: number; ts: number }>();
-const WINDOW_MS = 60_000; // 1분
-const MAX_PER_WINDOW = 5;
+export const runtime = "nodejs";
 
-function digitsOnly(s: string) {
-  return (s || "").replace(/\D/g, "");
-}
-
-function isValidKoreanMobile(phone: string) {
-  // 010xxxxxxxx(11자리) + 011~019(10~11자리)도 허용
-  return /^01[016789]\d{7,8}$/.test(phone);
+function shortErr(err: any) {
+  const name = err?.name || "Error";
+  const msg = err?.message || "unknown";
+  // 너무 길면 URL 깨질 수 있어서 짧게
+  return encodeURIComponent(`${name}:${String(msg).slice(0, 80)}`);
 }
 
 export async function POST(req: Request) {
   try {
-    // --- 레이트리밋 (IP 기준) ---
-    const h = await headers();
-    const ipRaw = h.get("x-forwarded-for") || h.get("x-real-ip") || "unknown";
-    const ip = ipRaw.split(",")[0].trim();
+    const formData = await req.formData();
 
-    const now = Date.now();
-    const prev = hitMap.get(ip);
-    if (!prev || now - prev.ts > WINDOW_MS) {
-      hitMap.set(ip, { count: 1, ts: now });
-    } else {
-      prev.count += 1;
-      if (prev.count > MAX_PER_WINDOW) {
-        return NextResponse.redirect(new URL("/?error=rate_limited#sms-lead", req.url), {
-          status: 303,
-        });
-      }
+    const storeName = String(formData.get("storeName") || "").trim();
+    const phone = String(formData.get("phone") || "").trim();
+    const message = String(formData.get("message") || "").trim();
+
+    if (!storeName || !phone) {
+      return NextResponse.redirect(
+        new URL("/?error=invalid_input#sms-lead", req.url)
+      );
     }
 
-    // --- 폼 데이터 파싱 ---
-    const form = await req.formData();
-
-    const storeName = String(form.get("storeName") || "").trim();
-    const phone = digitsOnly(String(form.get("phone") || ""));
-    const message = String(form.get("message") || "").trim();
-    const consent = String(form.get("consent") || "") === "1";
-
-    // --- 기본 검증 ---
-    if (!consent) {
-      return NextResponse.redirect(new URL("/?error=no_consent#sms-lead", req.url), {
-        status: 303,
-      });
-    }
-
-    if (!storeName || storeName.length < 2) {
-      return NextResponse.redirect(new URL("/?error=bad_store#sms-lead", req.url), {
-        status: 303,
-      });
-    }
-
-    if (!isValidKoreanMobile(phone)) {
-      return NextResponse.redirect(new URL("/?error=bad_phone#sms-lead", req.url), {
-        status: 303,
-      });
-    }
-
-    // --- 환경변수 로드 ---
-    const apiKey = process.env.SOLAPI_API_KEY;
-    const apiSecret = process.env.SOLAPI_API_SECRET;
-
-    // 발신번호(사전등록된 번호, 하이픈 없이 권장)
-    const from = digitsOnly(process.env.SOLAPI_FROM || "");
-
-    // 수신번호(내 폰)
-    const to = digitsOnly(process.env.SOLAPI_TO || "");
+    // 🔑 SOLAPI env 사용
+    const apiKey = process.env.SOLAPI_API_KEY?.trim();
+    const apiSecret = process.env.SOLAPI_API_SECRET?.trim();
+    const from = process.env.SOLAPI_FROM?.trim();
+    const to = process.env.SOLAPI_TO?.trim();
 
     if (!apiKey || !apiSecret || !from || !to) {
-      return NextResponse.redirect(new URL("/?error=server_env#sms-lead", req.url), {
-        status: 303,
+      console.error("❌ ENV missing", {
+        SOLAPI_API_KEY: !!apiKey,
+        SOLAPI_API_SECRET: !!apiSecret,
+        SOLAPI_FROM: !!from,
+        SOLAPI_TO: !!to,
       });
+      return NextResponse.redirect(
+        new URL("/?error=server_env#sms-lead", req.url)
+      );
     }
 
-    // --- 문자 내용 구성 ---
-    const textLines = [
-      "[도매문의 접수]",
-      `상호: ${storeName}`,
-      `연락처: ${phone}`,
-      message ? `내용: ${message}` : "내용: (없음)",
-    ];
-    const text = textLines.join("\n").slice(0, 1000);
+    // (선택) 기본 형식 점검: 숫자만 10~11자리 권장
+    const norm = (s: string) => s.replace(/[^0-9]/g, "");
+    const fromN = norm(from);
+    const toN = norm(to);
+    if (fromN.length < 10 || toN.length < 10) {
+      console.error("❌ Phone format invalid", { from, to });
+      return NextResponse.redirect(
+        new URL("/?error=bad_phone_env#sms-lead", req.url)
+      );
+    }
 
-    // --- SOLAPI 발송 ---
-    const messageService = new SolapiMessageService(apiKey, apiSecret);
-    await messageService.send({
-      to,
-      from,
+    const sms = new (CoolSMS as any)(apiKey, apiSecret);
+
+    const text = `[이가에프엔비 문자문의]
+상호: ${storeName}
+연락처: ${phone}
+내용: ${message || "-"}`;
+
+    const result = await sms.sendOne({
+      from: fromN,
+      to: toN,
       text,
     });
 
-    // --- 성공 시 리다이렉트 ---
-    return NextResponse.redirect(new URL("/?sent=1#sms-lead", req.url), {
-      status: 303,
-    });
-  } catch {
-    return NextResponse.redirect(new URL("/?error=unknown#sms-lead", req.url), {
-      status: 303,
-    });
+    console.log("✅ SMS SENT result:", result);
+
+    return NextResponse.redirect(new URL("/?sent=1#sms-lead", req.url));
+  } catch (err: any) {
+    // ✅ 여기서 “진짜 원인”이 터미널에 찍혀야 함
+    console.error("❌ SMS ERROR name:", err?.name);
+    console.error("❌ SMS ERROR message:", err?.message);
+    console.error("❌ SMS ERROR stack:", err?.stack);
+    console.error("❌ SMS ERROR raw:", err);
+
+    return NextResponse.redirect(
+      new URL(`/?error=${shortErr(err)}#sms-lead`, req.url)
+    );
   }
 }
