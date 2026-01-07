@@ -6,7 +6,6 @@ export const runtime = "nodejs";
 function shortErr(err: any) {
   const name = err?.name || "Error";
   const msg = err?.message || "unknown";
-  // 너무 길면 URL 깨질 수 있어서 짧게
   return encodeURIComponent(`${name}:${String(msg).slice(0, 80)}`);
 }
 
@@ -24,7 +23,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔑 SOLAPI env 사용
     const apiKey = process.env.SOLAPI_API_KEY?.trim();
     const apiSecret = process.env.SOLAPI_API_SECRET?.trim();
     const from = process.env.SOLAPI_FROM?.trim();
@@ -42,7 +40,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // (선택) 기본 형식 점검: 숫자만 10~11자리 권장
     const norm = (s: string) => s.replace(/[^0-9]/g, "");
     const fromN = norm(from);
     const toN = norm(to);
@@ -68,9 +65,9 @@ export async function POST(req: Request) {
 
     console.log("✅ SMS SENT result:", result);
 
-    return NextResponse.redirect(new URL("/?sent=1#sms-lead", req.url));
+    // ✅ 성공 시: 전환 전용 페이지로 보내서 (클라이언트에서 fbq/gtag 실행)
+    return NextResponse.redirect(new URL("/sms/sent", req.url));
   } catch (err: any) {
-    // ✅ 여기서 “진짜 원인”이 터미널에 찍혀야 함
     console.error("❌ SMS ERROR name:", err?.name);
     console.error("❌ SMS ERROR message:", err?.message);
     console.error("❌ SMS ERROR stack:", err?.stack);

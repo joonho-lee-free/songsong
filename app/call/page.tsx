@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
+    fbq?: (...args: any[]) => void;
   }
 }
 
@@ -20,7 +21,13 @@ export default function CallRedirectPage() {
       });
     }
 
-    // 2) 잠깐 기다렸다가 전화 앱으로 이동 (이게 전송 성공률을 확 올림)
+    // 2) Meta Pixel 전환(전화) 전송
+    // - 광고 최적화용 표준 이벤트: Contact
+    if (typeof window !== "undefined" && window.fbq) {
+      window.fbq("track", "Contact", { method: "phone" });
+    }
+
+    // 3) 잠깐 기다렸다가 전화 앱으로 이동 (전송 성공률↑)
     const t1 = setTimeout(() => {
       window.location.href = "tel:051-714-3396";
     }, 300);
@@ -42,7 +49,9 @@ export default function CallRedirectPage() {
         전화 연결 중…
       </h1>
       <p style={{ marginBottom: 16, lineHeight: 1.6 }}>
-        {countdown > 0 ? `${countdown}초 후 전화 앱으로 이동합니다.` : "전화 앱을 여는 중입니다."}
+        {countdown > 0
+          ? `${countdown}초 후 전화 앱으로 이동합니다.`
+          : "전화 앱을 여는 중입니다."}
         <br />
         자동으로 열리지 않으면 아래 버튼을 눌러 주세요.
       </p>
