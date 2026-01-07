@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Script from "next/script"; // ✅ 추가
+import Script from "next/script";
 import MobileCTA from "./_components/MobileCTA";
 
 const geistSans = Geist({
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* ✅ GA4 gtag.js 로드 */}
+        {/* ================= GA4 ================= */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-8R35CVBW02"
           strategy="afterInteractive"
@@ -42,6 +42,23 @@ export default function RootLayout({
             });
           `}
         </Script>
+
+        {/* ================= Meta Pixel ================= */}
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+
+            fbq('init', '1776616939205613');
+            fbq('track', 'PageView');
+          `}
+        </Script>
       </head>
 
       <body
@@ -51,6 +68,16 @@ export default function RootLayout({
 
         {/* 🔽 Mobile Fixed CTA (기존 로직 유지) */}
         <MobileCTA />
+
+        {/* Meta Pixel noscript */}
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=1776616939205613&ev=PageView&noscript=1"
+          />
+        </noscript>
       </body>
     </html>
   );
