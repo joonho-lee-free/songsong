@@ -25,7 +25,7 @@ function detectInquiryType(message: string) {
   return "기타 문의";
 }
 
-// ✅ 지역은 “원문 저장 없이” 키워드만 보고 라벨만 저장
+// ✅ 지역 라벨 감지
 function detectRegion(message: string) {
   const m = (message || "").toLowerCase();
 
@@ -52,14 +52,19 @@ function detectRegion(message: string) {
   for (const [re, label] of regions) {
     if (re.test(m)) return label;
   }
-
   return "미정";
 }
 
-function maskStoreName(storeName: string) {
+/**
+ * ✅ public_leads 저장 규칙:
+ * - 앞 2글자 + *** 로 마스킹해서 "저장"
+ * - (화면에서 추가 마스킹 금지)
+ */
+function maskStoreNamePublic(storeName: string) {
   const s = (storeName || "").trim();
-  if (!s) return "익**";
-  return `${s[0]}**`;
+  if (!s) return "익명***";
+  if (s.length === 1) return `${s}***`;
+  return `${s.slice(0, 2)}***`;
 }
 
 function maskPhone(phone: string) {
@@ -98,19 +103,44 @@ function getAdminDb() {
   return admin.firestore();
 }
 
+/**
+ * ✅ JSON / form-urlencoded / multipart 모두 지원
+ */
+async function readBody(req: Request): Promise<{
+  storeName: string;
+  phone: string;
+  message: string;
+}> {
+  const ct = (req.headers.get("content-type") || "").toLowerCase();
+
+  // JSON
+  if (ct.includes("application/json")) {
+    const data: any = await req.json();
+    return {
+      storeName: String(data?.storeName || data?.name || "").trim(),
+      phone: String(data?.phone || "").trim(),
+      message: String(data?.message || "").trim(),
+    };
+  }
+
+  // FormData
+  const fd = await req.formData();
+  return {
+    storeName: String(fd.get("storeName") || "").trim(),
+    phone: String(fd.get("phone") || "").trim(),
+    message: String(fd.get("message") || "").trim(),
+  };
+}
+
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
-
-    const storeName = String(formData.get("storeName") || "").trim();
-    const phone = String(formData.get("phone") || "").trim();
-    const message = String(formData.get("message") || "").trim();
+    const { storeName, phone, message } = await readBody(req);
 
     if (!storeName || !phone) {
       return redirect303(req.url, "/?error=invalid_input#sms-lead");
     }
 
-    // ✅ 기존 문자 발송 로직 유지
+    // ✅ 문자 발송 로직 (기존 유지)
     const apiKey = process.env.SOLAPI_API_KEY?.trim();
     const apiSecret = process.env.SOLAPI_API_SECRET?.trim();
     const from = process.env.SOLAPI_FROM?.trim();
@@ -150,25 +180,57 @@ export async function POST(req: Request) {
 
     console.log("✅ SMS SENT result:", result);
 
-    // ✅ Firestore 공개용 저장(마스킹 + 라벨만)
+    // ✅ Firestore 저장: dual-write
+    // - public_secure_leads: 원문 전체
+    // - public_leads: 마스킹(표시용)만
     try {
       const db = getAdminDb();
 
-      await db.collection("public_leads").add({
-        displayName: maskStoreName(storeName),
-        displayPhone: maskPhone(phone),
-        displayRegion: detectRegion(message), // ✅ 추가
-        inquiryType: detectInquiryType(message), // 문의내용(유형)
+      const region = detectRegion(message);
+      const inquiryType = detectInquiryType(message);
+
+      const displayName = maskStoreNamePublic(storeName); // ✅ 2글자 + ***
+      const displayPhone = maskPhone(phone);
+      const displayRegion = region;
+
+      const createdAt = admin.firestore.FieldValue.serverTimestamp();
+
+      // 1) 🔐 원문/내부용
+      await db.collection("public_secure_leads").add({
+        storeName,
+        phone,
+        message: message || "",
+
+        region,
+        inquiryType,
         source: "sms",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+
+        // 참고용 마스킹도 같이 보관(운영 편의)
+        displayName,
+        displayPhone,
+        displayRegion,
+
+        createdAt,
       });
+
+      // 2) 🌐 공개 표시용(비식별만 저장)
+      await db.collection("public_leads").add({
+        displayName, // ✅ 2글자 + ***
+        displayPhone,
+        displayRegion,
+        inquiryType,
+        createdAt,
+      });
+
+      console.log("✅ FIRESTORE SAVED (dual-write): public_secure_leads + public_leads");
     } catch (firebaseErr: any) {
-      console.error("⚠️ Firestore log failed:", firebaseErr?.message || firebaseErr);
+      console.error("❌ FIRESTORE FAILED:", firebaseErr?.message || firebaseErr);
+      // SMS는 이미 갔으니 사용자 UX는 성공 처리 유지
     }
 
     return redirect303(req.url, "/sms/sent");
   } catch (err: any) {
-    console.error("❌ SMS ERROR:", err);
+    console.error("[sms-lead] error:", err);
     return redirect303(req.url, `/?error=${shortErr(err)}#sms-lead`);
   }
 }
