@@ -4,6 +4,7 @@
 import type { Metadata } from "next";
 import Hero from "./_components/Hero";
 import Footer from "./_components/Footer";
+import RecentLeads from "./_components/RecentLeads"; // ✅ 추가
 
 export const metadata: Metadata = {
   title: "이가에프엔비 업소용 순살닭꼬치 도매 납품",
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
     "가게 운영 사장님 전용 업소용 순살닭꼬치 도매 납품. 110g 균일 · 순살 · 냉동 · 박스단위 공급.",
 };
 
-const KAKAO_CHAT_URL = "http://pf.kakao.com/_TWfbG"; // ✅ 카카오톡 채널관리 URL로 교체
-const CALL_PHONE = "051-714-3396"; // ✅ 실제 번호로 교체
+const KAKAO_CHAT_URL = "http://pf.kakao.com/_TWfbG";
+const CALL_PHONE = "051-714-3396";
 const HERO_IMAGE_SRC = "/images/hero-a.png";
 
 type SearchParams = {
@@ -25,7 +26,6 @@ export default async function Page({
 }: {
   searchParams?: Promise<SearchParams> | SearchParams;
 }) {
-  // Next.js 16+ 대응: searchParams가 Promise일 수 있음
   const sp: SearchParams =
     searchParams && typeof (searchParams as any)?.then === "function"
       ? await (searchParams as Promise<SearchParams>)
@@ -43,10 +43,10 @@ export default async function Page({
         heroImageSrc={HERO_IMAGE_SRC}
         leadAnchorId="sms-lead"
       />
+
       {/* 본문 */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-40 md:px-8">
         <div className="grid gap-10">
-          {/* 이런 사장님께 맞습니다 */}
           <div className="rounded-2xl border border-gray-200 p-6 md:p-8">
             <h2 className="text-lg font-bold md:text-xl">이런 사장님께 맞습니다</h2>
             <ul className="mt-4 grid gap-2 text-sm text-gray-700 md:grid-cols-2">
@@ -60,7 +60,6 @@ export default async function Page({
             </p>
           </div>
 
-          {/* 왜 이가에프엔비인가 */}
           <div className="rounded-2xl border border-gray-200 p-6 md:p-8">
             <h2 className="text-lg font-bold md:text-xl">왜 이가에프엔비인가</h2>
             <ul className="mt-4 grid gap-3 text-sm text-gray-700 md:grid-cols-2">
@@ -71,7 +70,6 @@ export default async function Page({
             </ul>
           </div>
 
-          {/* 제품 구성 */}
           <div className="rounded-2xl border border-gray-200 p-6 md:p-8">
             <h2 className="text-lg font-bold md:text-xl">제품 구성</h2>
             <p className="mt-2 text-sm text-gray-600">
@@ -87,7 +85,6 @@ export default async function Page({
             </p>
           </div>
 
-          {/* 발주GO 강조 */}
           <div className="rounded-2xl border border-gray-200 p-6 md:p-8">
             <h2 className="text-lg font-bold md:text-xl">발주GO로 주문이 편합니다</h2>
             <ul className="mt-4 grid gap-3 text-sm text-gray-700 md:grid-cols-2">
@@ -101,7 +98,6 @@ export default async function Page({
             </p>
           </div>
 
-          {/* 주문 흐름 */}
           <div className="rounded-2xl border border-gray-200 p-6 md:p-8">
             <h2 className="text-lg font-bold md:text-xl">주문 진행 순서</h2>
             <ol className="mt-4 grid gap-2 text-sm text-gray-700 md:grid-cols-2">
@@ -117,6 +113,9 @@ export default async function Page({
         </div>
       </section>
 
+      {/* ✅ 최근 문의 프레임 (문자폼 바로 위 추천) */}
+      <RecentLeads />
+
       {/* 문자 상담 요청 폼 */}
       <section
         id="sms-lead"
@@ -128,7 +127,6 @@ export default async function Page({
             아래 내용을 제출하면 담당자 휴대폰으로 문자로 바로 접수됩니다.
           </p>
 
-          {/* 결과 메시지 */}
           {sent && (
             <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
               접수 완료! 곧 연락드릴게요 🙂
