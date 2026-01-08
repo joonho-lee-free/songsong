@@ -134,23 +134,33 @@ async function readBody(req: Request): Promise<{
 
 export async function POST(req: Request) {
   try {
-    const { storeName, phone, region, inquiryType, message, source } = await readBody(req);
+    const { storeName, phone, region, inquiryType, message, source } =
+      await readBody(req);
 
+    /**
+     * ✅ 필수값 정책 변경
+     * - 상호(가게명), 연락처만 필수
+     * - 나머지(지역/문의/요청내용)는 비어도 저장 가능
+     */
     if (!storeName || !phone) {
       return redirect303(req.url, "/?error=invalid_input#sms-lead");
     }
+
+    // ✅ 빈칸이면 “미지정”으로 처리
+    const messageSafe = (message || "").trim() || "미지정";
+    const regionSafe = (region || "").trim() || "미지정";
+    const inquiryTypeSafe = (inquiryType || "").trim() || "미지정";
 
     /** ✅ SOLAPI 우선 / 없으면 COOLSMS fallback */
     const apiKey =
       process.env.SOLAPI_API_KEY?.trim() || process.env.COOLSMS_API_KEY?.trim();
     const apiSecret =
-      process.env.SOLAPI_API_SECRET?.trim() || process.env.COOLSMS_API_SECRET?.trim();
-    const from =
-      process.env.SOLAPI_FROM?.trim() || process.env.COOLSMS_FROM?.trim();
+      process.env.SOLAPI_API_SECRET?.trim() ||
+      process.env.COOLSMS_API_SECRET?.trim();
+    const from = process.env.SOLAPI_FROM?.trim() || process.env.COOLSMS_FROM?.trim();
 
     // ⚠️ 기존 로직 유지: 관리자(너)에게 문자 알림 보내는 구조면 TO는 환경변수로 받음
-    const to =
-      process.env.SOLAPI_TO?.trim() || process.env.COOLSMS_TO?.trim();
+    const to = process.env.SOLAPI_TO?.trim() || process.env.COOLSMS_TO?.trim();
 
     if (!apiKey || !apiSecret || !from || !to) {
       console.error("❌ ENV missing", {
@@ -182,9 +192,9 @@ export async function POST(req: Request) {
       `[이가에프엔비 문자문의]\n` +
       `상호: ${storeName}\n` +
       `연락처: ${phone}\n` +
-      `지역: ${region || "-"}\n` +
-      `문의: ${inquiryType || "-"}\n` +
-      `내용: ${message || "-"}\n` +
+      `지역: ${regionSafe}\n` +
+      `문의: ${inquiryTypeSafe}\n` +
+      `내용: ${messageSafe}\n` +
       (source ? `출처: ${source}\n` : "");
 
     const result = await sms.sendOne({
@@ -199,22 +209,36 @@ export async function POST(req: Request) {
     try {
       const db = getAdminDb();
 
-      const regionAuto = region || detectRegion(message);
-      const inquiryTypeAuto = inquiryType || detectInquiryType(message);
+      /**
+       * ✅ “어디 한군데만 적어도 저장” 충족
+       * - message가 있으면 자동감지로 region/inquiryType 보정 가능
+       * - 다 비었으면 이미 “미지정”으로 들어감
+       */
+      const hasRealMessage = (message || "").trim().length > 0;
+
+      const regionAuto = hasRealMessage ? detectRegion(message) : "미지정";
+      const inquiryTypeAuto = hasRealMessage ? detectInquiryType(message) : "미지정";
+
+      // 사용자가 직접 썼으면 그게 우선, 비었으면 자동/미지정
+      const finalRegion =
+        regionSafe !== "미지정" ? regionSafe : (regionAuto === "미정" ? "미지정" : regionAuto);
+
+      const finalInquiryType =
+        inquiryTypeSafe !== "미지정" ? inquiryTypeSafe : inquiryTypeAuto;
 
       const displayName = maskStoreNamePublic(storeName);
       const displayPhone = maskPhone(phone);
-      const displayRegion = regionAuto;
+      const displayRegion = finalRegion;
 
       const createdAt = admin.firestore.FieldValue.serverTimestamp();
 
       await db.collection("public_secure_leads").add({
         storeName,
         phone,
-        message: message || "",
-        region: regionAuto,
-        inquiryType: inquiryTypeAuto,
-        source: source || "sms",
+        message: messageSafe,
+        region: finalRegion,
+        inquiryType: finalInquiryType,
+        source: (source || "").trim() || "sms",
         displayName,
         displayPhone,
         displayRegion,
@@ -225,7 +249,7 @@ export async function POST(req: Request) {
         displayName,
         displayPhone,
         displayRegion,
-        inquiryType: inquiryTypeAuto,
+        inquiryType: finalInquiryType,
         createdAt,
       });
 
