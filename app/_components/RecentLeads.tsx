@@ -20,6 +20,12 @@ type PublicLead = {
   createdAt: Timestamp;
 };
 
+type HighlightStyle = { bg: string; border: string };
+
+type Props = {
+  highlightStyles?: ReadonlyArray<HighlightStyle>;
+};
+
 function timeAgo(ts: Timestamp) {
   const diff = Date.now() - ts.toMillis();
   const min = Math.floor(diff / 60000);
@@ -52,16 +58,21 @@ function SplitName({ name, active }: { name: string; active: boolean }) {
   );
 }
 
-// ✅ 최신 강조 색상(옅은 배경 + 진한 보더) 5종
-const HIGHLIGHT_STYLES = [
+// ✅ 기본 최신 강조 팔레트(섹션에서 안 내려주면 이걸 사용)
+const DEFAULT_HIGHLIGHT_STYLES: ReadonlyArray<HighlightStyle> = [
   { bg: "bg-indigo-50/70", border: "border-indigo-500" },
   { bg: "bg-sky-50/70", border: "border-sky-500" },
   { bg: "bg-emerald-50/70", border: "border-emerald-500" },
   { bg: "bg-amber-50/70", border: "border-amber-500" },
   { bg: "bg-rose-50/70", border: "border-rose-500" },
-] as const;
+];
 
-export default function RecentLeads() {
+export default function RecentLeads({ highlightStyles }: Props) {
+  const palette =
+    highlightStyles && highlightStyles.length > 0
+      ? highlightStyles
+      : DEFAULT_HIGHLIGHT_STYLES;
+
   const [rows, setRows] = useState<PublicLead[]>([]);
   const [shift, setShift] = useState(0);
 
@@ -95,11 +106,11 @@ export default function RecentLeads() {
 
   const viewRows = useMemo(() => rotateLeft(rows, shift), [rows, shift]);
 
-  /** ✅ 최신(맨 위) 강조색: 5색 순환 */
-  const highlight = useMemo(
-    () => HIGHLIGHT_STYLES[shift % HIGHLIGHT_STYLES.length],
-    [shift]
-  );
+  /** ✅ 최신(맨 위) 강조색: 섹션 팔레트(또는 기본 팔레트)로 순환 */
+  const highlight = useMemo(() => {
+    const safeLen = palette.length || 1;
+    return palette[shift % safeLen] || palette[0];
+  }, [palette, shift]);
 
   /** 롤링 */
   useEffect(() => {
@@ -184,7 +195,7 @@ export default function RecentLeads() {
       </div>
 
       <p className="mt-2 text-[11px] text-gray-500">
-        * 선택된 문의는 성명 뒷부분이 강조 표시됩니다.
+        * 지금 바로 무료상담 신청하세요!!
       </p>
     </div>
   );
