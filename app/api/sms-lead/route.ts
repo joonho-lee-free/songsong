@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import CoolSMS from "coolsms-node-sdk";
 import admin from "firebase-admin";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
@@ -55,11 +56,17 @@ function maskStoreNamePublic(storeName: string) {
   return `${s.slice(0, 2)}***`;
 }
 
-function maskPhone(phone: string) {
+/** ✅ 최근 문의현황용: 마지막 4자리만 */
+function phoneLast4(phone: string) {
   const digits = (phone || "").replace(/\D/g, "");
-  if (digits.length === 11) return `${digits.slice(0, 3)}-****-${digits.slice(7)}`;
-  if (digits.length === 10) return `${digits.slice(0, 3)}-***-${digits.slice(6)}`;
-  return "010-****-****";
+  if (digits.length >= 4) return digits.slice(-4);
+  return "****";
+}
+
+/** ✅ 최근 문의현황/문자 알림용: 마지막 4자리만 노출 */
+function maskPhone(phone: string) {
+  const last4 = phoneLast4(phone);
+  return `010-****-${last4}`;
 }
 
 function getAdminDb() {
@@ -77,6 +84,60 @@ function getAdminDb() {
     });
   }
   return admin.firestore();
+}
+
+/**
+ * ✅ 4) “문자로 접수하기” 더블클릭/재시도 방지 (딱 1회만 접수)
+ * - 동일 (상호 + 휴대폰) 조합이 짧은 시간(3분) 안에 다시 들어오면 중복으로 간주
+ * ⚠️ Firestore가 죽어있으면(ENV/권한) 중복 방지 불가 → 기존처럼 진행(로직 유지)
+ */
+function makeDedupKey(phoneDigits: string, storeName: string) {
+  const base = `${phoneDigits}|${(storeName || "").trim().toLowerCase()}`;
+  return crypto.createHash("sha256").update(base).digest("hex");
+}
+
+async function tryAcquireDedupLock(params: {
+  db: FirebaseFirestore.Firestore;
+  phoneDigits: string;
+  storeName: string;
+  windowMs: number;
+}): Promise<"acquired" | "duplicate"> {
+  const { db, phoneDigits, storeName, windowMs } = params;
+
+  const key = makeDedupKey(phoneDigits, storeName);
+  const ref = db.collection("public_lead_dedup").doc(key);
+  const nowMs = Date.now();
+
+  return await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (snap.exists) {
+      const data: any = snap.data() || {};
+      const ts = data?.createdAt;
+      const createdMs =
+        typeof ts?.toMillis === "function"
+          ? ts.toMillis()
+          : typeof data?.createdAtMs === "number"
+          ? data.createdAtMs
+          : 0;
+
+      if (createdMs && nowMs - createdMs < windowMs) {
+        return "duplicate" as const;
+      }
+    }
+
+    tx.set(
+      ref,
+      {
+        phoneDigits,
+        storeName: (storeName || "").trim(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAtMs: nowMs, // fallback
+      },
+      { merge: true }
+    );
+
+    return "acquired" as const;
+  });
 }
 
 /**
@@ -146,6 +207,25 @@ export async function POST(req: Request) {
       return redirect303(req.url, "/?error=invalid_input#sms-lead");
     }
 
+    const norm = (s: string) => s.replace(/[^0-9]/g, "");
+    const phoneDigits = norm(phone);
+
+    // ✅ 4) 딱 1회만 접수(더블클릭/재시도 중복 방지)
+    try {
+      const db = getAdminDb();
+      const lock = await tryAcquireDedupLock({
+        db,
+        phoneDigits,
+        storeName,
+        windowMs: 3 * 60 * 1000, // 3분
+      });
+      if (lock === "duplicate") {
+        return redirect303(req.url, "/sms/sent?dup=1");
+      }
+    } catch (dedupErr: any) {
+      console.error("⚠️ DEDUP SKIPPED:", dedupErr?.message || dedupErr);
+    }
+
     // ✅ 빈칸이면 “미지정”으로 처리
     const messageSafe = (message || "").trim() || "미지정";
     const regionSafe = (region || "").trim() || "미지정";
@@ -157,9 +237,9 @@ export async function POST(req: Request) {
     const apiSecret =
       process.env.SOLAPI_API_SECRET?.trim() ||
       process.env.COOLSMS_API_SECRET?.trim();
-    const from = process.env.SOLAPI_FROM?.trim() || process.env.COOLSMS_FROM?.trim();
+    const from =
+      process.env.SOLAPI_FROM?.trim() || process.env.COOLSMS_FROM?.trim();
 
-    // ⚠️ 기존 로직 유지: 관리자(너)에게 문자 알림 보내는 구조면 TO는 환경변수로 받음
     const to = process.env.SOLAPI_TO?.trim() || process.env.COOLSMS_TO?.trim();
 
     if (!apiKey || !apiSecret || !from || !to) {
@@ -176,7 +256,6 @@ export async function POST(req: Request) {
       return redirect303(req.url, "/?error=server_env#sms-lead");
     }
 
-    const norm = (s: string) => s.replace(/[^0-9]/g, "");
     const fromN = norm(from);
     const toN = norm(to);
 
@@ -185,13 +264,16 @@ export async function POST(req: Request) {
       return redirect303(req.url, "/?error=bad_phone_env#sms-lead");
     }
 
-    // ✅ SOLAPI 호출 SDK (패키지명이 coolsms-node-sdk인 게 정상)
     const sms = new (CoolSMS as any)(apiKey, apiSecret);
 
+    /**
+     * ✅ 1) 첫 행 강조(볼드 대체)  2) 연락처 마지막 4자리  3) 지역 표기
+     * - SMS는 진짜 Bold 불가 → “【 】” 헤더로 한 줄 강조
+     */
     const text =
-      `[이가에프엔비 문자문의]\n` +
+      `【이가에프엔비 문자문의】\n` +
       `상호: ${storeName}\n` +
-      `연락처: ${phone}\n` +
+      `연락처: ${maskPhone(phone)}\n` +
       `지역: ${regionSafe}\n` +
       `문의: ${inquiryTypeSafe}\n` +
       `내용: ${messageSafe}\n` +
@@ -209,25 +291,22 @@ export async function POST(req: Request) {
     try {
       const db = getAdminDb();
 
-      /**
-       * ✅ “어디 한군데만 적어도 저장” 충족
-       * - message가 있으면 자동감지로 region/inquiryType 보정 가능
-       * - 다 비었으면 이미 “미지정”으로 들어감
-       */
       const hasRealMessage = (message || "").trim().length > 0;
-
       const regionAuto = hasRealMessage ? detectRegion(message) : "미지정";
       const inquiryTypeAuto = hasRealMessage ? detectInquiryType(message) : "미지정";
 
-      // 사용자가 직접 썼으면 그게 우선, 비었으면 자동/미지정
       const finalRegion =
-        regionSafe !== "미지정" ? regionSafe : (regionAuto === "미정" ? "미지정" : regionAuto);
+        regionSafe !== "미지정"
+          ? regionSafe
+          : regionAuto === "미정"
+          ? "미지정"
+          : regionAuto;
 
       const finalInquiryType =
         inquiryTypeSafe !== "미지정" ? inquiryTypeSafe : inquiryTypeAuto;
 
       const displayName = maskStoreNamePublic(storeName);
-      const displayPhone = maskPhone(phone);
+      const displayPhone = maskPhone(phone); // ✅ 마지막 4자리만
       const displayRegion = finalRegion;
 
       const createdAt = admin.firestore.FieldValue.serverTimestamp();
@@ -235,6 +314,7 @@ export async function POST(req: Request) {
       await db.collection("public_secure_leads").add({
         storeName,
         phone,
+        phoneLast4: phoneLast4(phone),
         message: messageSafe,
         region: finalRegion,
         inquiryType: finalInquiryType,
@@ -246,17 +326,25 @@ export async function POST(req: Request) {
       });
 
       await db.collection("public_leads").add({
+        storeName: displayName,
+        phone: displayPhone,
+        phoneLast4: phoneLast4(phone),
+        region: displayRegion,
+        inquiryType: finalInquiryType,
+        message: messageSafe,
+        source: (source || "").trim() || "sms",
+        createdAt,
+
         displayName,
         displayPhone,
         displayRegion,
-        inquiryType: finalInquiryType,
-        createdAt,
       });
 
-      console.log("✅ FIRESTORE SAVED (dual-write): public_secure_leads + public_leads");
+      console.log(
+        "✅ FIRESTORE SAVED (dual-write): public_secure_leads + public_leads"
+      );
     } catch (firebaseErr: any) {
       console.error("❌ FIRESTORE FAILED:", firebaseErr?.message || firebaseErr);
-      // SMS는 이미 갔으니 UX는 성공 유지
     }
 
     return redirect303(req.url, "/sms/sent");
