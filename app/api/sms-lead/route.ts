@@ -21,6 +21,8 @@ function detectInquiryType(message: string) {
   if (/(도매|납품|물량|대량|정기|거래처)/.test(m)) return "도매 납품 문의";
   if (/(단가|가격|견적|원가|박스|몇\s*박스)/.test(m)) return "단가/견적 문의";
   if (/(배송|택배|퀵|냉동|지역)/.test(m)) return "배송/지역 문의";
+  if (/(가맹|프랜차이즈|광고|마케팅|프렌차이즈)/.test(m)) return "가맹점/마케팅 문의";
+  if (/(개설|창업|비용|가맹비)/.test(m)) return "창업/개설 문의";
   return "기타 문의";
 }
 
