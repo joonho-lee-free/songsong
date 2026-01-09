@@ -52,7 +52,7 @@ export default function Hero({
 
           <p className="mt-4 text-base leading-relaxed text-gray-700 md:text-lg">
             <span className="font-semibold text-gray-900">
-              110g 균일 · 순살 · 냉동 · 박스단위 공급
+              110g · 50g · 순살 · 냉동 · 박스단위 공급
             </span>
             <br />
             <span className="text-gray-600">

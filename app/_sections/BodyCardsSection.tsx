@@ -6,6 +6,7 @@ import FitForSection from "./FitForSection";
 import WhySection from "./WhySection";
 import ProductSection from "./ProductSection";
 import OrderGoSection from "./OrderGoSection";
+import MarketingSection from "./MarketingSection";
 import ProcessSection from "./ProcessSection";
 
 export default function BodyCardsSection() {
@@ -18,6 +19,10 @@ export default function BodyCardsSection() {
       { key: "why", node: <WhySection /> },
       { key: "product", node: <ProductSection /> },
       { key: "ordergo", node: <OrderGoSection /> },
+
+      // ✅ 추가: “주문 진행 순서” 위에 마케팅 섹션
+      { key: "marketing", node: <MarketingSection /> },
+
       { key: "process", node: <ProcessSection /> },
     ],
     []

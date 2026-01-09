@@ -1,4 +1,3 @@
-// app/_sections/ProcessSection.tsx
 "use client";
 
 export default function ProcessSection() {
@@ -21,8 +20,9 @@ export default function ProcessSection() {
         </div>
       </div>
 
+      {/* ✅ 이미지 제거, 텍스트 안내만 */}
       <ol className="mt-4 grid gap-2 text-sm text-gray-800 md:grid-cols-2">
-        <li>1️⃣ 문의 접수</li>
+        <li>1️⃣ 문의 접수 / 담당자상담</li>
         <li>2️⃣ 발주GO 계정 발급</li>
         <li>3️⃣ 충전 후 주문</li>
         <li>4️⃣ 출고 · 배송</li>
@@ -32,7 +32,10 @@ export default function ProcessSection() {
         ※ 첫 거래 시 담당자가 직접 안내드립니다.
       </p>
 
-      <div className="mt-5 h-1 w-full rounded-full bg-rose-200 transition-opacity duration-200 group-hover:opacity-90" aria-hidden />
+      <div
+        className="mt-5 h-1 w-full rounded-full bg-rose-200 transition-opacity duration-200 group-hover:opacity-90"
+        aria-hidden
+      />
     </div>
   );
 }
