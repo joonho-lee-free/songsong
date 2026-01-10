@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 const PRODUCT_IMAGES = [
   { src: "/images/productsection/product-01.jpg", alt: "왕순살왕파닭", label: "왕순살꼬치" },
   { src: "/images/productsection/product-02.jpg", alt: "일본식순살파닭", label: "일본식파닭" },
@@ -8,6 +10,27 @@ const PRODUCT_IMAGES = [
 ] as const;
 
 export default function ProductSection() {
+  // ✅ 추가: 클릭한 이미지 확대(라이트박스)
+  const [openImage, setOpenImage] = useState<string | null>(null);
+
+  // ✅ 추가: ESC로 닫기 + 열려있을 때 배경 스크롤 방지
+  useEffect(() => {
+    if (!openImage) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenImage(null);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [openImage]);
+
   return (
     <div className="group rounded-2xl border border-violet-100 bg-violet-50/40 p-6 ring-1 ring-violet-100 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-violet-200 hover:bg-violet-50/60 hover:shadow-lg hover:shadow-violet-100/50 hover:ring-violet-200 active:translate-y-0 md:p-8">
       <style jsx global>{`
@@ -38,8 +61,7 @@ export default function ProductSection() {
           </div>
           <h2 className="mt-3 text-lg font-bold md:text-xl">제품 구성</h2>
           <p className="mt-2 text-sm text-gray-700">
-            업소 운영에 가장 많이 사용되는 닭꼬치 위주 구성
-            
+            업소 운영에 가장 많이 사용되는 닭꼬치
           </p>
         </div>
 
@@ -52,17 +74,17 @@ export default function ProductSection() {
       </div>
 
       <ul className="mt-4 grid gap-2 text-sm text-gray-800 md:grid-cols-2">
-        <li>• 왕순살 150개 / 왕파닭 120개 / 25cm*110g </li>
-        <li>• 일본식순살 150개 / 일본식파닭 120개 / 이자까야용 / 18cm*50g </li>
-        <li>• 염통꼬치 240ea / 닭껍질꼬치 200ea / 18cm 35g 40g</li>
+        <li>• 왕순살 150개 / 왕파닭 120개 / 110g*25cm </li>
+        <li>• 일본식순살 150개 / 일본식파닭 120개</li>
+        <li>• 이자까야용 / 50g*18cm </li>
+        <li>• 염통 240개 / 껍질 200개 / 35g~40g*18cm</li>
       </ul>
 
-
       <p className="mt-3 text-sm text-gray-600">
-        ※ 전 제품 <b>박스 단위 · B2B 납품 전용 · 제품명 옆 박스별 꼬치개수</b>
+        ※ 전 제품 <b>박스 단위 · B2B 납품 전용 </b>
       </p>
 
-      {/* ✅ 이미지 4장 추가 */}
+      {/* ✅ 이미지 4장 */}
       <div className="ss-product-grid mt-4">
         {PRODUCT_IMAGES.map((img) => (
           <div
@@ -74,7 +96,8 @@ export default function ProductSection() {
                 src={img.src}
                 alt={img.alt}
                 loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                onClick={() => setOpenImage(img.src)} // ✅ 클릭 시 확대
+                className="absolute inset-0 h-full w-full cursor-zoom-in object-cover object-center"
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
               <div className="absolute bottom-2 right-2 z-10 rounded-md bg-black/35 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm md:bottom-3 md:right-3 md:text-sm">
@@ -89,6 +112,42 @@ export default function ProductSection() {
         className="mt-5 h-1 w-full rounded-full bg-violet-200 transition-opacity duration-200 group-hover:opacity-90"
         aria-hidden
       />
+
+      {/* ✅ 추가: 라이트박스(뉴스처럼 크게 보기) + 닫기 버튼 */}
+      {openImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setOpenImage(null)} // ✅ 배경 클릭하면 닫힘
+          role="dialog"
+          aria-modal="true"
+          aria-label="이미지 확대 보기"
+        >
+          {/* ✅ 중앙 컨테이너 (닫기 버튼 포함) */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            {/* ✅ 닫기 버튼 (우상단 X) */}
+            <button
+              type="button"
+              onClick={() => setOpenImage(null)}
+              className="absolute -right-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg ring-1 ring-black/10 transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="닫기"
+            >
+              <span className="text-xl leading-none">×</span>
+            </button>
+
+            {/* ✅ 확대 이미지 */}
+            <img
+              src={openImage}
+              alt="확대 이미지"
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+            />
+
+            {/* ✅ 안내 문구 */}
+            <div className="mt-3 text-center text-xs text-white/80">
+              배경을 누르거나 <b>ESC</b> 또는 <b>×</b>로 닫을 수 있어요.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 const ORDER_IMAGES = [
   { src: "/images/ordersection/order-01.jpg", alt: "앱 주문", label: "앱 주문" },
   { src: "/images/ordersection/order-02.jpg", alt: "품목/수량 확인", label: "한눈에 확인" },
@@ -8,6 +10,27 @@ const ORDER_IMAGES = [
 ] as const;
 
 export default function OrderGoSection() {
+  // ✅ 추가: 클릭한 이미지 확대(라이트박스)
+  const [openImage, setOpenImage] = useState<string | null>(null);
+
+  // ✅ 추가: ESC로 닫기 + 열려있을 때 배경 스크롤 방지
+  useEffect(() => {
+    if (!openImage) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenImage(null);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [openImage]);
+
   return (
     <div className="group rounded-2xl border border-amber-100 bg-amber-50/40 p-6 ring-1 ring-amber-100 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-amber-200 hover:bg-amber-50/60 hover:shadow-lg hover:shadow-amber-100/50 hover:ring-amber-200 active:translate-y-0 md:p-8">
       <style jsx global>{`
@@ -36,7 +59,9 @@ export default function OrderGoSection() {
             <span aria-hidden>📲</span>
             <span>주문 편의</span>
           </div>
-          <h2 className="mt-3 text-lg font-bold md:text-xl">발주GO로 주문이 편합니다</h2>
+          <h2 className="mt-3 text-lg font-bold md:text-xl">
+            발주GO로 주문이 편합니다
+          </h2>
         </div>
 
         <div
@@ -58,7 +83,7 @@ export default function OrderGoSection() {
         전화·카톡 주문 없이도 안정적으로 발주 가능합니다.
       </p>
 
-      {/* ✅ 이미지 4장 추가 */}
+      {/* ✅ 이미지 4장 + (추가) 클릭 시 확대 */}
       <div className="ss-order-grid mt-4">
         {ORDER_IMAGES.map((img) => (
           <div
@@ -70,7 +95,8 @@ export default function OrderGoSection() {
                 src={img.src}
                 alt={img.alt}
                 loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                onClick={() => setOpenImage(img.src)} // ✅ 클릭 시 확대
+                className="absolute inset-0 h-full w-full cursor-zoom-in object-cover object-center"
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
               <div className="absolute bottom-2 right-2 z-10 rounded-md bg-black/35 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm md:bottom-3 md:right-3 md:text-sm">
@@ -81,7 +107,45 @@ export default function OrderGoSection() {
         ))}
       </div>
 
-      <div className="mt-5 h-1 w-full rounded-full bg-amber-200 transition-opacity duration-200 group-hover:opacity-90" aria-hidden />
+      <div
+        className="mt-5 h-1 w-full rounded-full bg-amber-200 transition-opacity duration-200 group-hover:opacity-90"
+        aria-hidden
+      />
+
+      {/* ✅ 추가: 라이트박스(뉴스처럼 크게 보기) + 닫기 버튼 */}
+      {openImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setOpenImage(null)} // ✅ 배경 클릭하면 닫힘
+          role="dialog"
+          aria-modal="true"
+          aria-label="이미지 확대 보기"
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            {/* ✅ 닫기 버튼 (우상단 X) */}
+            <button
+              type="button"
+              onClick={() => setOpenImage(null)}
+              className="absolute -right-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg ring-1 ring-black/10 transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="닫기"
+            >
+              <span className="text-xl leading-none">×</span>
+            </button>
+
+            {/* ✅ 확대 이미지 */}
+            <img
+              src={openImage}
+              alt="확대 이미지"
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+            />
+
+            {/* ✅ 안내 문구 */}
+            <div className="mt-3 text-center text-xs text-white/80">
+              배경을 누르거나 <b>ESC</b> 또는 <b>×</b>로 닫을 수 있어요.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

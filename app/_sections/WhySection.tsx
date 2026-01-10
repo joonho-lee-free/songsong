@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const WHY_IMAGES = [
   { src: "/images/whysection/why-01.jpg", alt: "HACCP 생산 시설", label: "HACCP" },
@@ -12,13 +12,34 @@ const WHY_IMAGES = [
 export default function WhySection() {
   const [play, setPlay] = useState(false);
 
+  // ✅ 추가: 클릭한 이미지 확대(라이트박스)
+  const [openImage, setOpenImage] = useState<string | null>(null);
+
   // ✅ 유튜브 ID만 교체
-  const YOUTUBE_ID = "4rHP0_8m7yg"; // TODO: 실제 ID로 변경
+  const YOUTUBE_ID = "AHHHdwxHzgY"; // TODO: 실제 ID로 변경
 
   const thumbUrl = useMemo(
     () => `https://img.youtube.com/vi/${YOUTUBE_ID}/hqdefault.jpg`,
     [YOUTUBE_ID]
   );
+
+  // ✅ 추가: ESC로 닫기 + 열려있을 때 배경 스크롤 방지
+  useEffect(() => {
+    if (!openImage) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenImage(null);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [openImage]);
 
   return (
     <div className="group rounded-2xl border border-emerald-100 bg-emerald-50/40 p-6 ring-1 ring-emerald-100 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-emerald-200 hover:bg-emerald-50/60 hover:shadow-lg hover:shadow-emerald-100/50 hover:ring-emerald-200 active:translate-y-0 md:p-8">
@@ -67,7 +88,9 @@ export default function WhySection() {
           <ul className="mt-4 grid gap-3 text-sm text-gray-800">
             <li>✔ HACCP 인증 공장 직접 생산</li>
             <li>✔ 실생산 · 실포장 현장 운영</li>
-            <li>✔ 유통단계 최소화 → B2B 단가 → <b>가격비교필수</b></li>
+            <li>
+              ✔ 유통단계 최소화 → B2B 단가 → <b>가격비교필수</b>
+            </li>
             <li>✔ 문제 발생 시 대응 기준 명확</li>
           </ul>
         </div>
@@ -120,7 +143,8 @@ export default function WhySection() {
                 src={img.src}
                 alt={img.alt}
                 loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                onClick={() => setOpenImage(img.src)} // ✅ 클릭 시 확대
+                className="absolute inset-0 h-full w-full cursor-zoom-in object-cover object-center"
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
               <div className="absolute bottom-2 right-2 z-10 rounded-md bg-black/35 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm md:bottom-3 md:right-3 md:text-sm">
@@ -131,7 +155,45 @@ export default function WhySection() {
         ))}
       </div>
 
-      <div className="mt-5 h-1 w-full rounded-full bg-emerald-200 transition-opacity duration-200 group-hover:opacity-90" aria-hidden />
+      <div
+        className="mt-5 h-1 w-full rounded-full bg-emerald-200 transition-opacity duration-200 group-hover:opacity-90"
+        aria-hidden
+      />
+
+      {/* ✅ 추가: 라이트박스(뉴스처럼 크게 보기) + 닫기 버튼 */}
+      {openImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setOpenImage(null)} // ✅ 배경 클릭하면 닫힘
+          role="dialog"
+          aria-modal="true"
+          aria-label="이미지 확대 보기"
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            {/* ✅ 닫기 버튼 (우상단 X) */}
+            <button
+              type="button"
+              onClick={() => setOpenImage(null)}
+              className="absolute -right-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg ring-1 ring-black/10 transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="닫기"
+            >
+              <span className="text-xl leading-none">×</span>
+            </button>
+
+            {/* ✅ 확대 이미지 */}
+            <img
+              src={openImage}
+              alt="확대 이미지"
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+            />
+
+            {/* ✅ 안내 문구 */}
+            <div className="mt-3 text-center text-xs text-white/80">
+              배경을 누르거나 <b>ESC</b> 또는 <b>×</b>로 닫을 수 있어요.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

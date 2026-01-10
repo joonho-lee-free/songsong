@@ -49,12 +49,21 @@ export default function Footer() {
               주말 및 공휴일 휴무
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
+              {/* 전화 */}
               <a
                 href="tel:0517143396"
                 className="inline-flex w-full items-center justify-center rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white"
               >
                 전화하기
+              </a>
+
+              {/* 문자 상담 */}
+              <a
+                href="sms:01066386576?body=안녕하세요.%20이가에프엔비%20문자상담%20요청드립니다."
+                className="inline-flex w-full items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900"
+              >
+                문자상담 요청
               </a>
             </div>
           </div>
@@ -77,7 +86,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* 하단 메뉴(선택) */}
+        {/* 하단 메뉴 */}
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
           <a className="hover:text-gray-900" href="/company">
             회사소개
@@ -87,9 +96,6 @@ export default function Footer() {
           </a>
           <a className="hover:text-gray-900" href="/terms">
             이용약관
-          </a>
-          <a className="hover:text-gray-900" href="/inquiry">
-            1:1 문의
           </a>
         </div>
       </div>
