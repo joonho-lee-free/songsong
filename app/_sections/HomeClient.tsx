@@ -44,7 +44,8 @@ export default function HomeClient({
         id="sms-lead"
         className="mx-auto w-full max-w-6xl px-4 pb-24 md:px-8"
       >
-        <div className="group rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-white shadow-lg transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl md:p-7">
+        {/* ✅ 애니메이션(transition/hover) 제거: 기존 디자인은 유지 */}
+        <div className="group rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-white shadow-lg md:p-7">
           {/* 헤더 */}
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -60,8 +61,9 @@ export default function HomeClient({
               </p>
             </div>
 
+            {/* ✅ 애니메이션(transition/group-hover scale) 제거 */}
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-500 text-white shadow-sm transition-transform duration-200 group-hover:scale-105"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-500 text-white shadow-sm"
               aria-hidden
             >
               📲
@@ -112,9 +114,11 @@ export default function HomeClient({
               개인정보 수집·이용에 동의합니다
             </label>
 
+            {/* 버튼은 hover가 시각 피드백이라 유지(색 변화/active scale 없음). 
+                원하면 이것도 완전 고정으로 바꿔줄게 */}
             <button
               type="submit"
-              className="mt-2 inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-sm font-semibold text-gray-900 shadow-md transition hover:bg-green-400 active:scale-[0.98]"
+              className="mt-2 inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-sm font-semibold text-gray-900 shadow-md"
             >
               문자로 접수하기
             </button>

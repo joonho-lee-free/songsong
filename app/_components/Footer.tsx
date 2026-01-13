@@ -1,3 +1,4 @@
+// app/_components/Footer.tsx
 export default function Footer() {
   return (
     <footer className="border-t border-gray-200 bg-white">
@@ -14,7 +15,7 @@ export default function Footer() {
                 <span className="font-semibold text-gray-900">대표</span> : 이준호
               </div>
               <div>
-                <span className="font-semibold text-gray-900">주소</span> : 부산광역시 강서구 낙동북로 31번길 19
+                <span className="font-semibold text-gray-900">공장주소</span> : 부산광역시 강서구 낙동북로 31번길 19
               </div>
               <div>
                 <span className="font-semibold text-gray-900">사업자등록번호</span> : 408-30-91599
@@ -42,9 +43,9 @@ export default function Footer() {
               051-714-3396
             </div>
             <div className="mt-2 text-sm text-gray-600">
-              평일: 10:00 ~ 18:00
+              평일: 09:00 ~ 22:00
               <br />
-              점심: 12:00 ~ 13:00
+              작성 즉시 담당자가 연락드려요
               <br />
               주말 및 공휴일 휴무
             </div>
@@ -58,9 +59,9 @@ export default function Footer() {
                 전화하기
               </a>
 
-              {/* 문자 상담 */}
+              {/* ✅ 문자 상담: 폼 섹션(#sms-lead)으로 이동 */}
               <a
-                href="sms:01066386576?body=안녕하세요.%20이가에프엔비%20문자상담%20요청드립니다."
+                href="/#sms-lead"
                 className="inline-flex w-full items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900"
               >
                 문자상담 요청
