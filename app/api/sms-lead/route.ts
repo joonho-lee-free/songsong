@@ -21,8 +21,10 @@ function detectInquiryType(message: string) {
   if (/(도매|납품|물량|대량|정기|거래처)/.test(m)) return "도매 납품 문의";
   if (/(단가|가격|견적|원가|박스|몇\s*박스)/.test(m)) return "단가/견적 문의";
   if (/(배송|택배|퀵|냉동|지역)/.test(m)) return "배송/지역 문의";
-  if (/(가맹|프랜차이즈|광고|마케팅|프렌차이즈)/.test(m)) return "가맹점/마케팅 문의";
+  if (/(가맹|프랜차이즈|광고|마케팅|프렌차이즈)/.test(m))
+    return "가맹점/마케팅 문의";
   if (/(개설|창업|비용|가맹비)/.test(m)) return "창업/개설 문의";
+  if (/(샘플|샘플문의|샘플가격|샘플테스트)/.test(m)) return "샘플 문의";
   return "기타 문의";
 }
 
@@ -65,10 +67,45 @@ function phoneLast4(phone: string) {
   return "****";
 }
 
-/** ✅ 최근 문의현황/문자 알림용: 마지막 4자리만 노출 */
+/** ✅ 최근 문의현황/문자 알림용(공개표시용): 마지막 4자리만 노출 */
 function maskPhone(phone: string) {
   const last4 = phoneLast4(phone);
   return `010-****-${last4}`;
+}
+
+/**
+ * ✅ (직원/내 폰으로 받는 문자용) 연락처 “전체” 하이픈 포맷
+ * - 11자리(010xxxxxxxx) => 010-xxxx-xxxx
+ * - 10자리(01xxxxxxxxx) => 01x-xxx-xxxx (일반적인 예외 포함)
+ * - 9~10자리 지역번호(02 등)도 최대한 자연스럽게
+ */
+function formatPhoneFull(phone: string) {
+  const d = (phone || "").replace(/\D/g, "");
+  if (!d) return "";
+
+  // 휴대폰 11자리 (010,011,016,017,018,019 등)
+  if (d.length === 11) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+
+  // 휴대폰 10자리(드물지만 존재) 01x-xxx-xxxx
+  if (d.length === 10 && d.startsWith("01")) {
+    return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  }
+
+  // 서울(02) 9~10자리
+  if (d.startsWith("02") && (d.length === 9 || d.length === 10)) {
+    const midLen = d.length === 9 ? 3 : 4;
+    return `02-${d.slice(2, 2 + midLen)}-${d.slice(2 + midLen)}`;
+  }
+
+  // 기타 지역번호 10자리(0xx-xxx-xxxx) / 11자리(0xx-xxxx-xxxx)
+  if (d.startsWith("0") && (d.length === 10 || d.length === 11)) {
+    const area = d.slice(0, 3);
+    const midLen = d.length === 10 ? 3 : 4;
+    return `${area}-${d.slice(3, 3 + midLen)}-${d.slice(3 + midLen)}`;
+  }
+
+  // 그 외는 그냥 원문(숫자)
+  return d;
 }
 
 function getAdminDb() {
@@ -269,13 +306,14 @@ export async function POST(req: Request) {
     const sms = new (CoolSMS as any)(apiKey, apiSecret);
 
     /**
-     * ✅ 1) 첫 행 강조(볼드 대체)  2) 연락처 마지막 4자리  3) 지역 표기
+     * ✅ 1) 첫 행 강조(볼드 대체)  2) 연락처 전체 표기(내 폰 수신용)  3) 지역 표기
      * - SMS는 진짜 Bold 불가 → “【 】” 헤더로 한 줄 강조
+     * - 공개용 마스킹(maskPhone)은 Firestore public_leads 쪽에서만 유지
      */
     const text =
       `【이가에프엔비 문자문의】\n` +
       `상호: ${storeName}\n` +
-      `연락처: ${maskPhone(phone)}\n` +
+      `연락처: ${formatPhoneFull(phoneDigits) || phone}\n` + // ✅ 여기만 “전체 연락처”로 변경
       `지역: ${regionSafe}\n` +
       `문의: ${inquiryTypeSafe}\n` +
       `내용: ${messageSafe}\n` +
@@ -295,7 +333,9 @@ export async function POST(req: Request) {
 
       const hasRealMessage = (message || "").trim().length > 0;
       const regionAuto = hasRealMessage ? detectRegion(message) : "미지정";
-      const inquiryTypeAuto = hasRealMessage ? detectInquiryType(message) : "미지정";
+      const inquiryTypeAuto = hasRealMessage
+        ? detectInquiryType(message)
+        : "미지정";
 
       const finalRegion =
         regionSafe !== "미지정"
@@ -308,7 +348,7 @@ export async function POST(req: Request) {
         inquiryTypeSafe !== "미지정" ? inquiryTypeSafe : inquiryTypeAuto;
 
       const displayName = maskStoreNamePublic(storeName);
-      const displayPhone = maskPhone(phone); // ✅ 마지막 4자리만
+      const displayPhone = maskPhone(phone); // ✅ 공개표시용은 계속 “마스킹”
       const displayRegion = finalRegion;
 
       const createdAt = admin.firestore.FieldValue.serverTimestamp();
