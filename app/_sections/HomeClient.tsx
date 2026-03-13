@@ -1,10 +1,10 @@
-// app/_sections/HomeClient.tsx
 "use client";
 
 import Hero from "../_components/Hero";
 import Footer from "../_components/Footer";
 import BodyCardsSection from "./BodyCardsSection";
 import RecentLeadsSection from "./RecentLeadsSection";
+import InstagramSection from "./InstagramSection";
 
 const KAKAO_CHAT_URL = "http://pf.kakao.com/_TWfbG";
 const CALL_PHONE = "051-714-3396";
@@ -44,24 +44,19 @@ export default function HomeClient({
         id="sms-lead"
         className="mx-auto w-full max-w-6xl px-4 pb-24 md:px-8"
       >
-        {/* ✅ 애니메이션(transition/hover) 제거: 기존 디자인은 유지 */}
         <div className="group rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-white shadow-lg md:p-7">
-          {/* 헤더 */}
           <div className="mb-4 flex items-center justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-400">
                 <span aria-hidden>💬</span>
                 <span>즉시 접수</span>
               </div>
-              <h2 className="mt-3 text-lg font-bold md:text-xl">
-                문자 상담 요청
-              </h2>
+              <h2 className="mt-3 text-lg font-bold md:text-xl">문자 상담 요청</h2>
               <p className="mt-1 text-sm text-gray-300">
                 작성 즉시 담당자 휴대폰으로 문자 접수됩니다
               </p>
             </div>
 
-            {/* ✅ 애니메이션(transition/group-hover scale) 제거 */}
             <div
               className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-500 text-white shadow-sm"
               aria-hidden
@@ -114,8 +109,6 @@ export default function HomeClient({
               개인정보 수집·이용에 동의합니다
             </label>
 
-            {/* 버튼은 hover가 시각 피드백이라 유지(색 변화/active scale 없음). 
-                원하면 이것도 완전 고정으로 바꿔줄게 */}
             <button
               type="submit"
               className="mt-2 inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-3 text-sm font-semibold text-gray-900 shadow-md"
@@ -123,12 +116,13 @@ export default function HomeClient({
               문자로 접수하기
             </button>
 
-            <p className="text-xs text-gray-400">
-              * 과도한 반복 접수는 제한될 수 있습니다.
-            </p>
+            <p className="text-xs text-gray-400">* 과도한 반복 접수는 제한될 수 있습니다.</p>
           </form>
         </div>
       </section>
+
+      {/* ✅ 문자상담요청 폼 “바로 밑” 새 섹션 */}
+      <InstagramSection />
 
       <Footer />
     </main>
