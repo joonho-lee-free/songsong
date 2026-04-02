@@ -6,7 +6,15 @@ export default function InstagramSection() {
   // ✅ 여기에 "공개 게시물 URL" 9개를 직접 넣어야 실제 게시물이 뜹니다.
   // 형식 예) https://www.instagram.com/p/XXXXXXXXX/
   const postUrls = [
-    "https://www.instagram.com/p/CzvoZctROEI/?img_index=1",
+    "https://www.instagram.com/p/DWnaoEbkaa8/",
+    "https://www.instagram.com/p/DWnZ9pskdT1/",
+    "https://www.instagram.com/p/DWnZvtCkfnE/",
+    "https://www.instagram.com/p/DWnahJIkRoN/",
+    "https://www.instagram.com/p/DWnaoEbkaa8/",
+    "https://www.instagram.com/p/C1B1DX2s32z/",
+    "https://www.instagram.com/p/DWnaUb6kVql/",
+    "https://www.instagram.com/p/DWnaZGbkcdC/",
+    "https://www.instagram.com/p/DWnacqiEYxH/",
     // "https://www.instagram.com/p/POST_ID_2/",
     // "https://www.instagram.com/p/POST_ID_3/",
     // ...
