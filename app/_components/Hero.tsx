@@ -46,10 +46,10 @@ export default function Hero({
             프랜차이즈 B2B가격 그대로
           </p>
 
-          <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight md:text-5xl">
+          <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-gray-900 md:text-5xl">
             잘 팔리는 닭꼬치,
-            <br className="hidden sm:block" />
-            업소는 바로 압니다
+            <br />
+            업소는 바로 압니다!
           </h1>
 
           <p className="mt-4 text-base leading-relaxed text-gray-700 md:text-lg">

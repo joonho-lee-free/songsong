@@ -75,13 +75,13 @@ export default function FitForSection() {
           </div>
 
           <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-            프랜차이즈 · 유통 · 대형마트에 들어가는
+            전문점 · 유통 · 대형마트
             <br className="hidden md:block" />
             <span className="text-blue-700">
               B2B 납품단가가 그대로
             </span>
             <br className="hidden md:block" />
-            이제 온라인에서 바로 받으세요
+            이제 온라인에서
           </h2>
         </div>
 
@@ -96,7 +96,7 @@ export default function FitForSection() {
       <p className="mt-4 text-sm leading-6 text-gray-700 md:text-base">
         닭꼬치는 아무 데서나 떼와도 팔 수 있습니다.
         <br className="hidden md:block" />
-        하지만 <b>계속 주문 들어오는 제품은 맛, 단가, 공급이 같이 맞아야 합니다.</b>
+        <b>하지만 계속 주문 들어오는 제품은 맛, 단가, 공급이 같이 맞아야 합니다.</b>
       </p>
 
       <ul className="mt-4 grid gap-2 text-sm text-gray-800 md:grid-cols-2">
@@ -107,8 +107,8 @@ export default function FitForSection() {
       </ul>
 
       <p className="mt-3 text-sm text-gray-600">
-        ※ 소매용 감성가 아닙니다.{" "}
-        <b>프랜차이즈 · 유통 · 대형마트 납품가 기준으로 맞춘 사업자 전용 공급</b>
+        ※ 소매용 단가가 아닙니다.{" "}
+        <b>프랜차이즈 · 유통 · 대형마트 납품가 기준으로 맞춘 사업자 전용 공급가</b>
         입니다.
       </p>
 
