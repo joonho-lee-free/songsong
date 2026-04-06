@@ -20,8 +20,8 @@ export default function ProductSection() {
         id: "product-01",
         cover: "/images/productsection/product-01.jpg",
         alt: "왕순살왕파닭",
-        label: "왕순살꼬치 110g / 1,050원",
-        description: "1봉 15개 (10봉입) / 1박스 150개",
+        label: "할인가격",
+        description: "HACCP 인증 공장 직접 출고",
         images: [
           "/images/productsection/01/01.jpg",
           "/images/productsection/01/02.jpg",
@@ -36,8 +36,8 @@ export default function ProductSection() {
         id: "product-02",
         cover: "/images/productsection/product-02.jpg",
         alt: "왕파닭꼬치",
-        label: "왕파닭꼬치 110g / 1,150원",
-        description: "1봉 15개 (8봉입) / 1박스 120개",
+        label: "왕순살 ㅣ 1,050원",
+        description: "1봉 15개 (10봉입) / 1박스 150개",
         images: [
           "/images/productsection/02/01.jpg",
           "/images/productsection/02/02.jpg",
@@ -51,8 +51,8 @@ export default function ProductSection() {
         id: "product-03",
         cover: "/images/productsection/product-03.jpg",
         alt: "일본식순살꼬치",
-        label: "일본식순살 50g / 700원",
-        description: "1봉 15개 (10봉입) / 1박스 150개",
+        label: "왕파닭 ㅣ 1,150원",
+        description: "1봉 15개 (8봉입) / 1박스 120개",
         images: [
           "/images/productsection/03/01.jpg",
           "/images/productsection/03/02.jpg",
@@ -66,8 +66,8 @@ export default function ProductSection() {
         id: "product-04",
         cover: "/images/productsection/product-04.jpg",
         alt: "일본식파닭꼬치",
-        label: "일본식파닭 50g / 750원",
-        description: "1봉 15개 (8봉입) / 1박스 120개",
+        label: "일본식순살 ㅣ 700원",
+        description: "1봉 15개 (10봉입) / 1박스 150개",
         images: [
           "/images/productsection/04/01.jpg",
           "/images/productsection/04/02.jpg",
@@ -81,8 +81,8 @@ export default function ProductSection() {
         id: "product-05",
         cover: "/images/productsection/product-05.jpg",
         alt: "무릎연골꼬치",
-        label: "무릎연골꼬치 40g / 800원",
-        description: "1봉 20개 (10봉입) / 1박스 200개",
+        label: "일본식파닭ㅣ750원",
+        description: "1봉 15개 (8봉입) / 1박스 120개",
         images: [
           "/images/productsection/05/01.jpg",
           "/images/productsection/05/02.jpg",
@@ -96,7 +96,7 @@ export default function ProductSection() {
         id: "product-06",
         cover: "/images/productsection/product-06.jpg",
         alt: "닭껍질꼬치",
-        label: "닭껍질꼬치 40g / 650원",
+        label: "무릎연골ㅣ800원",
         description: "1봉 20개 (10봉입) / 1박스 200개",
         images: [
           "/images/productsection/06/01.jpg",
@@ -111,8 +111,8 @@ export default function ProductSection() {
         id: "product-07",
         cover: "/images/productsection/product-07.jpg",
         alt: "염통꼬치",
-        label: "염통꼬치 40g / 800원",
-        description: "1봉 40개 (6봉입) / 1박스 240개",
+        label: "닭껍질꼬치ㅣ650원",
+        description: "1봉 20개 (10봉입) / 1박스 200개",
         images: [
           "/images/productsection/07/01.jpg",
           "/images/productsection/07/02.jpg",
@@ -126,8 +126,8 @@ export default function ProductSection() {
         id: "product-08",
         cover: "/images/productsection/product-08.jpg",
         alt: "HACCP인증시설",
-        label: "HACCP 인증공장",
-        description: "안심하고 구매하세요",
+        label: "염통꼬치ㅣ500원",
+        description: "1봉 40개 (6봉입) / 1박스 240개",
         images: [
           "/images/productsection/08/01.jpg",
           "/images/productsection/08/02.jpg",
@@ -193,7 +193,7 @@ export default function ProductSection() {
         </div>
 
         <ul className="mt-4 grid gap-2 text-sm text-gray-800 md:grid-cols-2">
-          <li>• 왕순살/파닭꼬치(닭다리살) 110g*25cm</li>
+          <li>• 왕순살/파닭꼬치(닭다리살) 110g*28cm</li>
           <li>• 일본식순살/파닭(닭다리살) 50g*18cm</li>
           <li>• 무릎연골꼬치 40g*18cm</li>
           <li>• 염통꼬치 / 닭껍질꼬치 40g*18cm</li>
